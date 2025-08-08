@@ -10,7 +10,7 @@ A command-line interface for Magenta RT Audio Injection, converted from the orig
 - 💾 **Session recording** with automatic export of input/output/mixed audio files
 - ⚙️ **TOML configuration** with interactive setup and command-line overrides
 - 🎨 **Rich terminal UI** with live streaming statistics and progress indicators
-- 🔧 **Multi-device support** (CPU, GPU, TPU) with proper JAX integration
+- 🔧 **Multi-device support** (CPU, CUDA GPU, Apple Silicon MPS) with PyTorch integration
 - 📊 **Audio streaming stats** including latency monitoring and performance metrics
 - 🎛️ **Professional audio handling** with crossfading, metronome, and real-time processing
 
@@ -25,22 +25,20 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 Then install the project:
 
 ```bash
+# Base installation (CLI functionality only)
 uv pip install -e .
 
-# For TPU support (recommended, works on free Colab TPUs):
-uv pip install -e ".[tpu]"
+# With PyTorch for full audio generation:
+uv pip install -e ".[pytorch]"
 
-# For GPU support (requires compatible GPU):
+# For CUDA GPU support:
 uv pip install -e ".[gpu]"
+
+# For Apple Silicon (M1/M2) support:  
+uv pip install -e ".[mps]"
 ```
 
-**Install Magenta RealTime (required for actual model functionality):**
-
-```bash
-# Clone and install the official Magenta RT repository
-git clone https://github.com/magenta/magenta-realtime.git
-uv pip install -e magenta-realtime/[tpu]  # or [gpu] for GPU support
-```
+**The CLI now includes a PyTorch-based audio generation system!** No need to install the complex Magenta RealTime dependencies anymore.
 
 ## Quick Start
 
@@ -186,50 +184,41 @@ prompt_weights = [1.0, 0.0, 0.0]
 Here's a full workflow from setup to audio generation:
 
 ```bash
-# 1. Install Magenta RT JAM CLI
-uv pip install -e .
+# 1. Install Magenta RT JAM CLI with PyTorch
+uv pip install -e ".[pytorch]"
 
-# 2. Install Magenta RealTime (required)
-git clone https://github.com/magenta/magenta-realtime.git
-uv pip install -e magenta-realtime/[tpu]
-
-# 3. Check available models
-jamcli models list
-
-# 4. Download a model (takes ~5 minutes first time)
-jamcli models download large
-
-# 5. Check your audio devices (optional)
+# 2. Check your audio devices (optional)
 jamcli devices
 
-# 6. Create a configuration file
+# 3. Create a configuration file
 jamcli init-config
 
-# 7. Run with your audio file
+# 4. Run with your audio file
 jamcli run --audio-file your-music.wav
 
-# 8. Or run with microphone input
+# 5. Or run with microphone input  
 jamcli run --input-source mic
 
-# 9. Check your generated sessions
+# 6. Check your generated sessions
 jamcli sessions
 ```
 
 **What happens during a session:**
-1. 🔄 Model initializes (loads from cache after first time)
+1. 🔄 PyTorch model initializes on your chosen device (CPU/GPU/MPS)
 2. 🎵 Audio processing begins with your input
 3. 📊 Live statistics show latency, processing rate, etc.
-4. 🎤 Model "joins in" after the configured intro loops
+4. 🎤 Neural network "joins in" after the configured intro loops
 5. 💾 Session automatically saves to `jamcli_output/` when stopped
 6. 🎧 Three files are saved: input, output, and mixed audio
 
 ## Requirements
 
 - Python 3.10+
-- Magenta RealTime library (installed separately)
-- JAX with TPU/GPU support (for model inference)
-- Audio system (PortAudio) for real-time streaming
-- ~2GB disk space for model checkpoints
+- PyTorch 2.0+ (installed with `.[pytorch]` extra)
+- Audio system (PortAudio via sounddevice) for real-time streaming
+- For GPU: CUDA-compatible GPU with drivers
+- For Apple Silicon: M1/M2 Mac (MPS support built-in)
+- ~1GB disk space for PyTorch models
 
 ## Development
 
