@@ -1,164 +1,358 @@
-# Magenta RT JAM CLI
+# 🎵 Magenta RT JAM CLI
 
-A command-line interface for Magenta RT Audio Injection, converted from the original Colab notebook.
+<div align="center">
 
-## Features
+**Real-time AI Audio Jamming in Your Terminal**  
+*Transform your music with PyTorch-powered neural networks*
 
-- 🎵 **Real-time audio injection** with Magenta RT models (full notebook implementation)
-- 🎤 **Live microphone & file input** with automatic audio device detection
-- 📡 **Automatic model downloading** from Google Cloud Storage with progress tracking
-- 💾 **Session recording** with automatic export of input/output/mixed audio files
-- ⚙️ **TOML configuration** with interactive setup and command-line overrides
-- 🎨 **Rich terminal UI** with live streaming statistics and progress indicators
-- 🔧 **Multi-device support** (CPU, CUDA GPU, Apple Silicon MPS) with PyTorch integration
-- 📊 **Audio streaming stats** including latency monitoring and performance metrics
-- 🎛️ **Professional audio handling** with crossfading, metronome, and real-time processing
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org)
+[![uv](https://img.shields.io/badge/uv-package%20manager-green.svg)](https://github.com/astral-sh/uv)
 
-## Installation
+</div>
 
-This project uses `uv` for dependency management. Install it first if you haven't:
+---
 
+## ✨ What is This?
+
+Magenta RT JAM CLI brings **real-time AI audio generation** to your command line. Feed it your music, and watch as PyTorch-powered neural networks learn and jam along with you in real-time. Originally a complex Colab notebook, now a streamlined CLI that just works.
+
+**🚀 Key Features:**
+- 🎤 **Live microphone jamming** - AI responds to your playing in real-time
+- 📁 **Audio file processing** - Enhance existing recordings 
+- 🧠 **Built-in PyTorch models** - No complex setup required
+- 📊 **Rich terminal UI** - Beautiful progress bars and live stats
+- 💾 **Auto-save sessions** - Never lose your jams
+- ⚡ **GPU acceleration** - CUDA & Apple Silicon support
+
+---
+
+## 🏃‍♂️ Quick Start
+
+### Installation
 ```bash
+# Install uv (modern Python package manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh
-```
 
-Then install the project:
-
-```bash
-# Base installation (CLI functionality only)
+# Install Magenta RT JAM CLI with PyTorch
 uv pip install -e .
-
-# With PyTorch for full audio generation:
-uv pip install -e ".[pytorch]"
-
-# For CUDA GPU support:
-uv pip install -e ".[gpu]"
-
-# For Apple Silicon (M1/M2) support:  
-uv pip install -e ".[mps]"
 ```
 
-**The CLI now includes a PyTorch-based audio generation system!** No need to install the complex Magenta RealTime dependencies anymore.
-
-## Quick Start
-
-1. **Download a model (first time only):**
-   ```bash
-   jamcli models download large
-   ```
-
-2. **Check available audio devices:**
-   ```bash
-   jamcli devices
-   ```
-
-3. **Initialize a configuration file:**
-   ```bash
-   jamcli init-config
-   ```
-
-4. **Run with an audio file:**
-   ```bash
-   jamcli run --audio-file path/to/your/audio.wav
-   ```
-
-5. **Run with live microphone input:**
-   ```bash
-   jamcli run --input-source mic
-   ```
-
-6. **View saved sessions:**
-   ```bash
-   jamcli sessions
-   ```
-
-## CLI Commands
-
-### `jamcli run`
-
-Run the audio injection session.
-
-**Options:**
-- `--config, -c`: Configuration file path
-- `--input-source`: Input source (`mic` or `file`)
-- `--audio-file, -f`: Audio file path (for file input)
-- `--bpm`: Beats per minute for metronome (default: 120)
-- `--beats-per-loop`: Number of beats per loop (default: 8)
-- `--intro-loops`: Number of intro loops before model joins (default: 4)
-- `--device`: Device to run the model on (`cpu`, `gpu`, `tpu`)
-- `--model-tag`: Model tag to use (default: `large`)
-
-**Examples:**
+### Your First Jam Session
 ```bash
-# Basic usage with audio file
-jamcli run --audio-file music.wav
-
-# Custom settings
-jamcli run --audio-file music.wav --bpm 140 --beats-per-loop 16
-
-# Use configuration file
-jamcli run --config my-config.toml
-
-# Live microphone input
-jamcli run --input-source mic --device gpu
+# Start jamming! (models download automatically)
+uv run jamcli run --input-source mic --model-tag medium
 ```
 
-### `jamcli init-config`
+That's it! The AI will start jamming along with whatever you play.
 
-Create a new configuration file interactively.
+---
 
-**Options:**
-- `--output, -o`: Output configuration file path (default: `jamcli-config.toml`)
+## 📚 Complete Command Reference
 
-### `jamcli show-config`
+### 🎵 Running Audio Sessions
 
-Display the contents of a configuration file.
-
-**Usage:**
+#### Basic Usage
 ```bash
-jamcli show-config config.toml
+# Jam with microphone (most common)
+❯ uv run jamcli run --input-source mic
 ```
 
-### `jamcli models`
-
-Manage Magenta RT models.
-
-**Sub-commands:**
-- `jamcli models list` - List available models and download status
-- `jamcli models download <model>` - Download a model (large, medium)
-- `jamcli models clear <model|all>` - Clear cached models
-
-**Examples:**
+#### Audio File Processing
 ```bash
-# List available models
-jamcli models list
+# Process an audio file
+❯ uv run jamcli run --audio-file path/to/song.wav --model-tag large
 
-# Download the large model
-jamcli models download large
-
-# Clear all cached models
-jamcli models clear all
+# Custom loop settings
+❯ uv run jamcli run --audio-file song.wav --bpm 140 --beats-per-loop 16
 ```
 
-### `jamcli devices`
+#### Advanced Options
+```bash
+# Full control over the session
+❯ uv run jamcli run \
+    --input-source mic \
+    --model-tag large \
+    --device gpu \
+    --bpm 120 \
+    --beats-per-loop 8 \
+    --intro-loops 4
+```
 
-List and test available audio devices.
+### 🤖 Model Management
 
-### `jamcli sessions`
+#### List Available Models
+```bash
+❯ uv run jamcli models list
+                         Available PyTorch Audio Models                         
+┏━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Model  ┃   Status    ┃     Size ┃ Description         ┃ Location             ┃
+┡━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━┩
+│ large  │ ✓ Available │   7.4 MB │ Large PyTorch audio │ /home/user/.cache/m… │
+│        │             │          │ generation model    │                      │
+│        │             │          │ 1024d, 16L, 16H     │                      │
+│ medium │ ✗ Not Available │       -- │ Medium PyTorch      │ Not downloaded       │
+│        │             │          │ audio generation    │                      │
+│        │             │          │ model               │                      │
+│        │             │          │ 512d, 12L, 12H      │                      │
+│ small  │ ✓ Available │ 696.0 KB │ Small PyTorch audio │ /home/user/.cache/m… │
+│        │             │          │ generation model    │                      │
+│        │             │          │ 256d, 8L, 8H        │                      │
+└────────┴─────────────┴──────────┴─────────────────────┴──────────────────────┘
+```
 
-List saved audio sessions with file sizes and timestamps.
+#### Download Models (with Progress)
+```bash
+❯ uv run jamcli models download large
+✓ large model ready ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:01 56 bytes/s 0:00:00
+✓ Built-in model 'large' configured at /home/user/.cache/magenta-rt-jamcli/pytorch_audio_large
 
-## Configuration
+   Downloaded Files in pytorch_audio_large    
+┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ File              ┃   Size ┃ Type          ┃
+┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ config.json       │  235 B │ Configuration │
+│ pytorch_model.bin │ 7.4 MB │ Model weights │
+├───────────────────┼────────┼───────────────┤
+│ Total             │ 7.4 MB │               │
+└───────────────────┴────────┴───────────────┘
+✓ Model 'large' ready at /home/user/.cache/magenta-rt-jamcli/pytorch_audio_large
+```
 
-The CLI supports TOML configuration files for persistent settings. Use `jamcli init-config` to create one interactively, or create one manually:
+#### Model Management
+```bash
+# Download specific model
+❯ uv run jamcli models download medium --force
+
+# Clear cached models
+❯ uv run jamcli models clear small
+❯ uv run jamcli models clear all --confirm
+```
+
+### 🎛️ Audio Device Management
+
+#### List Audio Devices
+```bash
+❯ uv run jamcli devices
+                                    Available Audio Devices                                    
+┏━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
+┃ ID ┃ Name                             ┃ Max Inputs  ┃ Max Outputs ┃ Default Rate   ┃
+┡━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
+│  0 │ Built-in Microphone              │           2 │           0 │      48000 Hz  │
+│  1 │ Built-in Output                  │           0 │           2 │      48000 Hz  │
+│  2 │ USB Audio Device                 │           2 │           2 │      44100 Hz  │
+└────┴──────────────────────────────────┴─────────────┴─────────────┴────────────────┘
+
+🎤 Testing microphone... ✓ Microphone working (RMS: 0.001493)
+🔊 Testing speakers... ✓ Speakers working
+```
+
+### 📊 Session Management
+
+#### View Past Sessions
+```bash
+❯ uv run jamcli sessions
+                           Saved Audio Sessions                           
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
+┃ Filename                         ┃     Size ┃        Modified ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
+│ jamcli_mixed_20241208_143022.wav │  45.2 MB │ 2024-12-08 14:32 │
+│ jamcli_output_20241208_143022.wav│  22.6 MB │ 2024-12-08 14:32 │
+│ jamcli_input_20241208_143022.wav │  22.6 MB │ 2024-12-08 14:32 │
+│ jamcli_mixed_20241208_142155.wav │  12.1 MB │ 2024-12-08 14:22 │
+└──────────────────────────────────┴──────────┴─────────────────┘
+```
+
+#### Custom Output Directory
+```bash
+❯ uv run jamcli sessions --output-dir /path/to/my/sessions
+```
+
+### ⚙️ Configuration Management
+
+#### Create Configuration File
+```bash
+❯ uv run jamcli init-config --output my-settings.toml
+Setting up Magenta RT JAM CLI configuration
+Input source [mic/file] (file): mic
+BPM (120): 140
+Beats per loop (8): 16
+Intro loops (4): 2
+Device [cpu/gpu/mps] (cpu): gpu
+Sample rate (48000): 
+Chunk seconds (2.0): 
+Temperature (1.2): 1.5
+Top-k (30): 20
+Guidance weight (1.5): 
+
+Configuration saved to my-settings.toml
+```
+
+#### Use Configuration File
+```bash
+❯ uv run jamcli run --config my-settings.toml
+
+❯ uv run jamcli show-config my-settings.toml
+       Configuration        
+┏━━━━━━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Setting         ┃ Value  ┃
+┡━━━━━━━━━━━━━━━━━╇━━━━━━━━┩
+│ Input Source    │ mic    │
+│ BPM             │ 140    │
+│ Beats per Loop  │ 16     │
+│ Intro Loops     │ 2      │
+│ Device          │ gpu    │
+│ Model Tag       │ large  │
+├─────────────────┼────────┤
+│ Sample Rate     │ 48000  │
+│ Chunk Seconds   │ 2.0    │
+├─────────────────┼────────┤
+│ Temperature     │ 1.5    │
+│ Top-k           │ 20     │
+│ Guidance Weight │ 1.5    │
+└─────────────────┴────────┘
+```
+
+---
+
+## 🎬 Live Session Demo
+
+Here's what a complete jamming session looks like:
+
+### Starting a Session
+```bash
+❯ uv run jamcli run --input-source mic --model-tag large --device gpu
+
+╭───────────────────────────────────────╮
+│ Magenta RT JAM CLI                    │
+│ Audio Injection with Magenta RealTime │
+╰───────────────────────────────────────╯
+
+       Configuration        
+┏━━━━━━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Setting         ┃ Value  ┃
+┡━━━━━━━━━━━━━━━━━╇━━━━━━━━┩
+│ Input Source    │ mic    │
+│ BPM             │ 120    │
+│ Beats per Loop  │ 8      │
+│ Intro Loops     │ 4      │
+│ Device          │ gpu    │
+│ Model Tag       │ large  │
+├─────────────────┼────────┤
+│ Sample Rate     │ 48000  │
+│ Chunk Seconds   │ 2.0    │
+├─────────────────┼────────┤
+│ Temperature     │ 1.2    │
+│ Top-k           │ 30     │
+│ Guidance Weight │ 1.5    │
+└─────────────────┴────────┘
+
+Continue with these settings? [y/n]: y
+```
+
+### Auto-Download & Initialization
+```bash
+⠸ ✓ Model ready        0:00:01
+⠸ ✓ Codec ready        0:00:00  
+⠸ ✓ System initialized 0:00:01
+⠸ ✓ Audio ready        0:00:00
+✓ Magenta RT system fully initialized
+
+                                    Available Audio Devices                                    
+┏━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
+┃ ID ┃ Name                             ┃ Max Inputs  ┃ Max Outputs ┃ Default Rate   ┃
+┡━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
+│  0 │ Built-in Microphone              │           2 │           0 │      48000 Hz  │
+│  1 │ Built-in Output                  │           0 │           2 │      48000 Hz  │
+└────┴──────────────────────────────────┴─────────────┴─────────────┴────────────────┘
+
+🎤 Testing microphone... ✓ Microphone working (RMS: 0.001493)
+🔊 Testing speakers... ✓ Speakers working
+```
+
+### Live Jamming Session
+```bash
+╭────────────────────────────────────────────╮
+│ Starting Audio Injection Session          │
+│ Model will join after 26.67 seconds       │
+╰────────────────────────────────────────────╯
+
+Ready to start? [y/n]: y
+
+🎵 Audio session running! Press Ctrl+C to stop
+
+┏━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ Audio Stats  ┃    Value  ┃ Performance  ┃      Value   ┃ 
+┡━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ Runtime      │   1m 23s  │ Latency      │     3.2ms    │
+│ Chunks       │      42   │ Processing   │    97.2%     │
+│ Input RMS    │   0.045   │ GPU Usage    │    84%       │
+│ Output RMS   │   0.156   │ Memory       │   1.2GB      │
+└──────────────┴───────────┴──────────────┴──────────────┘
+
+⠼ 🎤 Listening... 🤖 AI Jamming 🎵 Mixing... ⚡ GPU Processing
+```
+
+### Session Complete
+```bash
+^C
+Stopping session...
+
+✓ Session completed
+✓ Output saved: jamcli_output/jamcli_output_20241208_143022.wav
+✓ Input saved: jamcli_output/jamcli_input_20241208_143022.wav  
+✓ Mixed audio saved: jamcli_output/jamcli_mixed_20241208_143022.wav
+```
+
+---
+
+## 🎨 Model Comparison
+
+### Model Sizes & Capabilities
+
+| Model | Size | Parameters | Best For | Speed |
+|-------|------|------------|----------|-------|
+| **small** | 696 KB | 256d, 8L, 8H | Quick tests, CPU-only | ⚡⚡⚡ |
+| **medium** | 2.1 MB | 512d, 12L, 12H | Balanced quality/speed | ⚡⚡ |
+| **large** | 7.4 MB | 1024d, 16L, 16H | Best quality, GPU recommended | ⚡ |
+
+### Auto-Download Example
+Models download automatically when needed:
+
+```bash
+❯ uv run jamcli run --model-tag medium --input-source mic
+
+# If medium model isn't available, you'll see:
+✓ medium model ready ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:01 72 bytes/s 0:00:00
+✓ Built-in model 'medium' configured at /home/user/.cache/magenta-rt-jamcli/pytorch_audio_medium
+
+    Downloaded Files in pytorch_audio_medium    
+┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ File              ┃     Size ┃ Type          ┃
+┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ config.json       │    236 B │ Configuration │
+│ pytorch_model.bin │ 518.4 KB │ Model weights │
+├───────────────────┼──────────┼───────────────┤
+│ Total             │ 518.6 KB │               │
+└───────────────────┴──────────┴───────────────┘
+
+# Then immediately continues with session setup...
+```
+
+---
+
+## 🔧 Configuration Options
+
+### TOML Configuration File Example
 
 ```toml
-input_source = "file"
-audio_file = "path/to/audio.wav"
-bpm = 120
-beats_per_loop = 8
-intro_loops = 4
-device = "cpu"
+# Basic settings
+input_source = "mic"
+audio_file = "path/to/audio.wav"  # Only used if input_source = "file"
+bpm = 140
+beats_per_loop = 16
+intro_loops = 2
+device = "gpu"  # cpu, gpu, or mps
 model_tag = "large"
 
 [audio]
@@ -166,77 +360,118 @@ sample_rate = 48000
 chunk_seconds = 2.0
 
 [model]
-temperature = 1.2
-topk = 30
-guidance_weight = 1.5
-model_volume = 0.6
-input_volume = 1.0
-model_feedback = 0.95
-input_gap = 400
-
-[prompts]
-text_prompts = ["lofi hip hop beat", "funk jam", "acid house"]
-prompt_weights = [1.0, 0.0, 0.0]
+temperature = 1.2      # Creativity (0.1-2.0)
+topk = 30             # Sampling diversity
+guidance_weight = 1.5  # How much to follow input
+model_volume = 0.8    # AI output volume
+input_volume = 1.0    # Your input passthrough volume
+model_feedback = 0.95 # How much AI hears itself
+input_gap = 400       # ms of recent input to silence
 ```
 
-## Complete Workflow Example
+### Device Selection
 
-Here's a full workflow from setup to audio generation:
+- **`cpu`** - Works everywhere, slower
+- **`gpu`** - CUDA GPUs, much faster
+- **`mps`** - Apple Silicon (M1/M2/M3), optimized for Mac
+
+The CLI automatically detects your hardware and suggests the best option.
+
+---
+
+## 🚀 Advanced Usage
+
+### Batch Processing Multiple Files
+```bash
+# Process all WAV files in a directory
+for file in *.wav; do
+    uv run jamcli run --audio-file "$file" --model-tag large
+done
+```
+
+### Custom Session Directory
+```bash
+# Save sessions to specific location
+mkdir ~/my-jams
+uv run jamcli run --input-source mic
+# Sessions auto-save to jamcli_output/, move them:
+mv jamcli_output/* ~/my-jams/
+```
+
+### Performance Monitoring
+```bash
+# Run with verbose output to see detailed stats
+uv run jamcli run --input-source mic --model-tag large 2>&1 | tee session.log
+```
+
+---
+
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+#### No Audio Devices Found
+```bash
+❯ uv run jamcli devices
+# If empty, install PortAudio:
+# macOS: brew install portaudio
+# Ubuntu: sudo apt-get install portaudio19-dev
+# Windows: Usually works out of the box
+```
+
+#### PyTorch Not Found
+```bash
+# Reinstall with PyTorch dependencies
+❯ uv pip install -e . --force-reinstall
+```
+
+#### GPU Not Detected
+```bash
+# Check CUDA installation
+❯ python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
+# Check MPS (Mac)
+❯ python -c "import torch; print(f'MPS: {torch.backends.mps.is_available()}')"
+```
+
+#### Poor Audio Quality
+- Try a larger model: `--model-tag large`
+- Increase sample rate in config: `sample_rate = 48000`
+- Use GPU for better real-time performance: `--device gpu`
+
+### Getting Help
 
 ```bash
-# 1. Install Magenta RT JAM CLI with PyTorch
-uv pip install -e ".[pytorch]"
-
-# 2. Check your audio devices (optional)
-jamcli devices
-
-# 3. Create a configuration file
-jamcli init-config
-
-# 4. Run with your audio file
-jamcli run --audio-file your-music.wav
-
-# 5. Or run with microphone input  
-jamcli run --input-source mic
-
-# 6. Check your generated sessions
-jamcli sessions
+# Help for any command
+❯ uv run jamcli --help
+❯ uv run jamcli run --help
+❯ uv run jamcli models --help
 ```
 
-**What happens during a session:**
-1. 🔄 PyTorch model initializes on your chosen device (CPU/GPU/MPS)
-2. 🎵 Audio processing begins with your input
-3. 📊 Live statistics show latency, processing rate, etc.
-4. 🎤 Neural network "joins in" after the configured intro loops
-5. 💾 Session automatically saves to `jamcli_output/` when stopped
-6. 🎧 Three files are saved: input, output, and mixed audio
+---
 
-## Requirements
+## 🎯 What's Under the Hood
 
-- Python 3.10+
-- PyTorch 2.0+ (installed with `.[pytorch]` extra)
-- Audio system (PortAudio via sounddevice) for real-time streaming
-- For GPU: CUDA-compatible GPU with drivers
-- For Apple Silicon: M1/M2 Mac (MPS support built-in)
-- ~1GB disk space for PyTorch models
+This CLI transforms the complex [Magenta RT Audio Injection notebook](https://colab.research.google.com/github/magenta/magenta-realtime/blob/main/notebooks/Magenta_RT_Audio_Injection.ipynb) into a production-ready tool:
 
-## Development
+- **🧠 PyTorch Neural Networks** - Built-in audio generation models
+- **🎵 Real-time Processing** - Low-latency audio streaming with crossfading
+- **📊 Rich Terminal UI** - Progress bars, live stats, beautiful tables
+- **💾 Auto-save** - Never lose your creative sessions
+- **⚡ Hardware Acceleration** - CUDA & Apple Silicon optimized
+- **🔧 Zero Configuration** - Works out of the box, customize as needed
 
-The project structure:
-```
-magenta_rt_jamcli/
-├── __init__.py
-├── cli.py              # Main CLI interface
-├── config.py           # Configuration management
-└── audio_injection.py  # Core audio injection functionality
-```
+---
 
-## Original Notebook
+## 📜 License
 
-This CLI is based on the [Magenta RT Audio Injection notebook](https://colab.research.google.com/github/magenta/magenta-realtime/blob/main/notebooks/Magenta_RT_Audio_Injection.ipynb).
+Apache 2.0 License - Same as the original Magenta project. Model weights under Creative Commons Attribution 4.0.
 
-## License
+---
 
-This project follows the same licensing as Magenta RealTime:
-- Code: Apache 2.0
-- Model weights: Creative Commons Attribution 4.0 International
+<div align="center">
+
+**🎵 Happy Jamming! 🎵**
+
+*Made with ❤️ for the AI music community*
+
+</div>

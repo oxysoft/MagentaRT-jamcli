@@ -16,24 +16,12 @@ dependencies = [
     "google-cloud-storage>=2.0.0",
     "requests>=2.28.0",
     "tqdm>=4.64.0",
-]
-
-[project.optional-dependencies]
-pytorch = [
-    "torch>=2.0.0",
-    "torchaudio>=2.0.0", 
-    "transformers>=4.30.0",
-]
-gpu = [
     "torch>=2.0.0",
     "torchaudio>=2.0.0",
     "transformers>=4.30.0",
 ]
-mps = [
-    "torch>=2.0.0",
-    "torchaudio>=2.0.0", 
-    "transformers>=4.30.0",
-]
+
+[project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
     "black>=23.0.0",

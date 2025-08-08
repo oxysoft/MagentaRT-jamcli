@@ -160,22 +160,38 @@ def models():
 def list_models():
     """List available models and their download status."""
     model_manager = ModelManager(console)
-    status = model_manager.list_available_models()
     
-    table = Table(title="Available Magenta RT Models", show_header=True, header_style="bold magenta")
+    table = Table(title="Available PyTorch Audio Models", show_header=True, header_style="bold magenta")
     table.add_column("Model", style="bold")
     table.add_column("Status", justify="center")
-    table.add_column("Location")
+    table.add_column("Size", justify="right")
+    table.add_column("Description")
+    table.add_column("Location", style="dim")
     
-    for model_tag, is_downloaded in status.items():
-        if is_downloaded:
-            status_text = "[green]✓ Downloaded[/green]"
-            location = str(model_manager.get_model_path(model_tag))
-        else:
-            status_text = "[red]✗ Not Downloaded[/red]"
-            location = "[dim]Not available[/dim]"
+    for model_tag in model_manager.MODEL_CONFIGS.keys():
+        info = model_manager.get_model_info(model_tag)
+        config = info["config"]
         
-        table.add_row(model_tag, status_text, location)
+        if info["available"]:
+            status_text = "[green]✓ Available[/green]"
+            size_text = info["size"]
+            location = str(info["path"])
+        else:
+            status_text = "[red]✗ Not Available[/red]"
+            size_text = "[dim]--[/dim]"
+            location = "[dim]Not downloaded[/dim]"
+        
+        # Build description with parameters
+        params = config["parameters"]
+        description = f"{config['description']}\n[dim]{params['hidden_dim']}d, {params['num_layers']}L, {params['num_heads']}H[/dim]"
+        
+        table.add_row(
+            model_tag, 
+            status_text, 
+            size_text,
+            description,
+            location
+        )
     
     console.print(table)
 
