@@ -51,7 +51,7 @@ class Config:
     bpm: int = 120
     beats_per_loop: int = 8
     intro_loops: int = 4
-    device: str = "cpu"  # "cpu", "gpu", "tpu"
+    device: str = "cpu"  # "cpu", "gpu", "mps"
     model_tag: str = "large"
     
     # Sub-configurations

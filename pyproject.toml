@@ -9,7 +9,6 @@ dependencies = [
     "click>=8.0.0",
     "numpy>=1.24.0",
     "librosa>=0.10.0",
-    "jax>=0.4.0",
     "toml>=0.10.2",
     "sounddevice>=0.4.0",
     "soundfile>=0.12.0",
@@ -20,15 +19,20 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-magenta-rt = [
-    # These would need to be installed from the magenta-realtime repo
-    # "magenta-rt @ git+https://github.com/magenta/magenta-realtime.git",
-]
-tpu = [
-    "jax[tpu]>=0.4.0",
+pytorch = [
+    "torch>=2.0.0",
+    "torchaudio>=2.0.0", 
+    "transformers>=4.30.0",
 ]
 gpu = [
-    "jax[cuda12]>=0.4.0",
+    "torch>=2.0.0",
+    "torchaudio>=2.0.0",
+    "transformers>=4.30.0",
+]
+mps = [
+    "torch>=2.0.0",
+    "torchaudio>=2.0.0", 
+    "transformers>=4.30.0",
 ]
 dev = [
     "pytest>=7.0.0",

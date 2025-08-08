@@ -40,8 +40,8 @@ def cli(ctx):
 @click.option("--beats-per-loop", type=int, default=8, help="Number of beats per loop")
 @click.option("--intro-loops", type=int, default=4, 
               help="Number of intro loops before model joins")
-@click.option("--device", type=click.Choice(["cpu", "gpu", "tpu"]), default="cpu", 
-              help="Device to run the model on")
+@click.option("--device", type=click.Choice(["cpu", "gpu", "mps"]), default="cpu", 
+              help="Device to run the model on (gpu=CUDA, mps=Apple Silicon)")
 @click.option("--model-tag", default="large", help="Model tag to use")
 @click.pass_context
 def run(ctx, config, input_source, audio_file, bpm, beats_per_loop, intro_loops, device, model_tag):
@@ -124,7 +124,7 @@ def init_config(output):
     
     cfg.device = Prompt.ask(
         "Device", 
-        choices=["cpu", "gpu", "tpu"], 
+        choices=["cpu", "gpu", "mps"], 
         default="cpu"
     )
     
