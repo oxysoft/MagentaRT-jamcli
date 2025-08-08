@@ -19,7 +19,7 @@ Magenta RT JAM CLI brings **real-time AI audio generation** to your command line
 
 **🚀 Key Features:**
 - 🎤 **Live microphone jamming** - AI responds to your playing in real-time
-- 🎛️ **Interactive TUI Mode** - Real-time volume meters and live session control
+- 🎛️ **Interactive TUI by default** - Real-time volume meters and live session control
 - 📁 **Audio file processing** - Enhance existing recordings 
 - 🧠 **Built-in PyTorch models** - No complex setup required
 - 📊 **Rich terminal UI** - Beautiful progress bars and live stats
@@ -55,23 +55,23 @@ jamcli --help  # Now available globally
 
 ### Your First Jam Session
 ```bash
-# Start jamming! (models download automatically)
+# Start jamming with TUI (default)! Models download automatically:
 uv run jamcli run --input-source mic --model-tag medium
 
-# Or with the new Terminal UI featuring live volume meters:
-uv run jamcli run --input-source mic --model-tag medium --tui
+# Or use console mode instead:
+uv run jamcli run --input-source mic --model-tag medium --no-tui
 
 # Or if installed globally with uvx:
-jamcli run --input-source mic --model-tag medium --tui
+jamcli run --input-source mic --model-tag medium
 ```
 
-That's it! The AI will start jamming along with whatever you play. Use `--tui` for an interactive terminal interface with real-time volume visualization!
+That's it! The AI will start jamming along with whatever you play. The **Terminal User Interface with live volume meters is now the default** - use `--no-tui` if you prefer the simple console interface.
 
 ---
 
-## 🎛️ Terminal User Interface (TUI)
+## 🎛️ Terminal User Interface (TUI) - Default Mode
 
-The new TUI mode provides a professional full-screen interface with real-time monitoring:
+The TUI provides a professional full-screen interface with real-time monitoring and is **now the default mode**:
 
 ### Features
 - **Live Volume Meters** - Real-time RMS visualization for Input, AI Output, and Mixed audio
@@ -114,11 +114,11 @@ The new TUI mode provides a professional full-screen interface with real-time mo
 
 #### Basic Usage
 ```bash
-# Jam with microphone (most common)
+# Jam with microphone (TUI default)
 ❯ uv run jamcli run --input-source mic
 
-# With interactive TUI for live volume monitoring
-❯ uv run jamcli run --input-source mic --tui
+# Use console mode instead
+❯ uv run jamcli run --input-source mic --no-tui
 ```
 
 #### Audio File Processing
@@ -132,15 +132,17 @@ The new TUI mode provides a professional full-screen interface with real-time mo
 
 #### Advanced Options
 ```bash
-# Full control over the session with TUI
+# Full control over the session (TUI default)
 ❯ uv run jamcli run \
     --input-source mic \
     --model-tag large \
     --device gpu \
     --bpm 120 \
     --beats-per-loop 8 \
-    --intro-loops 4 \
-    --tui
+    --intro-loops 4
+
+# Or force console mode
+❯ uv run jamcli run --input-source mic --model-tag large --no-tui
 ```
 
 ### 🤖 Model Management

@@ -43,9 +43,9 @@ def cli(ctx):
 @click.option("--device", type=click.Choice(["cpu", "gpu", "mps"]), default="cpu", 
               help="Device to run the model on (gpu=CUDA, mps=Apple Silicon)")
 @click.option("--model-tag", default="large", help="Model tag to use")
-@click.option("--tui", is_flag=True, help="Use Terminal User Interface with live volume meters")
+@click.option("--no-tui", is_flag=True, help="Disable Terminal User Interface, use console mode")
 @click.pass_context
-def run(ctx, config, input_source, audio_file, bpm, beats_per_loop, intro_loops, device, model_tag, tui):
+def run(ctx, config, input_source, audio_file, bpm, beats_per_loop, intro_loops, device, model_tag, no_tui):
     """Run the audio injection session."""
     
     # Load configuration
@@ -74,6 +74,17 @@ def run(ctx, config, input_source, audio_file, bpm, beats_per_loop, intro_loops,
     # Display configuration
     display_config(cfg)
     
+    # TUI is now the default, unless explicitly disabled
+    use_tui = not no_tui
+    
+    # Show mode information before confirmation
+    if use_tui:
+        console.print("\n[bold cyan]🎛️  TUI Mode (default)[/bold cyan] - Interactive interface with live volume meters")
+        console.print("[dim]Use --no-tui for console mode[/dim]")
+    else:
+        console.print("\n[bold blue]📟 Console Mode[/bold blue] - Traditional command line interface") 
+        console.print("[dim]Remove --no-tui for interactive TUI mode (recommended)[/dim]")
+    
     # Confirm settings
     if not Confirm.ask("Continue with these settings?"):
         console.print("[yellow]Cancelled by user[/yellow]")
@@ -81,11 +92,7 @@ def run(ctx, config, input_source, audio_file, bpm, beats_per_loop, intro_loops,
     
     try:
         # Initialize and run the audio injection app
-        app = AudioInjectionApp(cfg, console, use_tui=tui)
-        
-        if tui:
-            console.print("[bold cyan]🎛️  Starting TUI Mode[/bold cyan]")
-            console.print("[dim]Use SPACE to start/stop, Q to quit[/dim]\n")
+        app = AudioInjectionApp(cfg, console, use_tui=use_tui)
         
         app.run()
     except KeyboardInterrupt:
