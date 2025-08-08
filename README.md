@@ -19,6 +19,7 @@ Magenta RT JAM CLI brings **real-time AI audio generation** to your command line
 
 **🚀 Key Features:**
 - 🎤 **Live microphone jamming** - AI responds to your playing in real-time
+- 🎛️ **Interactive TUI Mode** - Real-time volume meters and live session control
 - 📁 **Audio file processing** - Enhance existing recordings 
 - 🧠 **Built-in PyTorch models** - No complex setup required
 - 📊 **Rich terminal UI** - Beautiful progress bars and live stats
@@ -57,11 +58,53 @@ jamcli --help  # Now available globally
 # Start jamming! (models download automatically)
 uv run jamcli run --input-source mic --model-tag medium
 
+# Or with the new Terminal UI featuring live volume meters:
+uv run jamcli run --input-source mic --model-tag medium --tui
+
 # Or if installed globally with uvx:
-jamcli run --input-source mic --model-tag medium
+jamcli run --input-source mic --model-tag medium --tui
 ```
 
-That's it! The AI will start jamming along with whatever you play.
+That's it! The AI will start jamming along with whatever you play. Use `--tui` for an interactive terminal interface with real-time volume visualization!
+
+---
+
+## 🎛️ Terminal User Interface (TUI)
+
+The new TUI mode provides a professional full-screen interface with real-time monitoring:
+
+### Features
+- **Live Volume Meters** - Real-time RMS visualization for Input, AI Output, and Mixed audio
+- **Session Statistics** - Runtime, chunks processed, generation rate, latency, and performance metrics  
+- **Interactive Controls** - Keyboard shortcuts for session control
+- **System Status** - Model and device status indicators
+- **Peak Hold Indicators** - Volume bars with 1-second peak hold visualization
+
+### TUI Controls
+| Key | Action |
+|-----|--------|
+| **SPACE** | Start/Stop Recording Session |
+| **R** | Reset Statistics |
+| **Q** or **Ctrl+C** | Quit Application |
+
+### TUI Layout
+```
+┌─────────────────────────────────────────────────┐
+│ 🎵 Magenta RT JAM CLI - Terminal Interface      │
+├─────────────────────────────────────────────────┤
+│ Configuration        │ Live Volume Levels       │
+│ Model: large         │ Input      ░░░██████░░░  │
+│ Device: gpu          │ AI Output  ░░░░████░░░░  │
+│ Input: mic           │ Mixed      ░░░██████░░░  │
+├─────────────────────────────────────────────────┤
+│ Session Statistics   │ System Status            │
+│ Runtime: 0:02:34     │ Status: 🔴 RECORDING     │
+│ Chunks: 153          │ Model: ✓ Ready          │
+│ Rate: 0.5 chunks/s   │ Audio: ✓ Connected      │
+├─────────────────────────────────────────────────┤
+│ SPACE: Start/Stop  R: Reset  Q: Quit            │
+└─────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -73,6 +116,9 @@ That's it! The AI will start jamming along with whatever you play.
 ```bash
 # Jam with microphone (most common)
 ❯ uv run jamcli run --input-source mic
+
+# With interactive TUI for live volume monitoring
+❯ uv run jamcli run --input-source mic --tui
 ```
 
 #### Audio File Processing
@@ -86,14 +132,15 @@ That's it! The AI will start jamming along with whatever you play.
 
 #### Advanced Options
 ```bash
-# Full control over the session
+# Full control over the session with TUI
 ❯ uv run jamcli run \
     --input-source mic \
     --model-tag large \
     --device gpu \
     --bpm 120 \
     --beats-per-loop 8 \
-    --intro-loops 4
+    --intro-loops 4 \
+    --tui
 ```
 
 ### 🤖 Model Management
