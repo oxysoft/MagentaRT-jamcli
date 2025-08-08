@@ -181,7 +181,7 @@ def list_models():
 
 
 @models.command("download")
-@click.argument("model_tag", type=click.Choice(["large", "medium"]))
+@click.argument("model_tag", type=click.Choice(["large", "medium", "small"]))
 @click.option("--force", "-f", is_flag=True, help="Force re-download even if cached")
 def download_model(model_tag, force):
     """Download a Magenta RT model."""
@@ -196,7 +196,7 @@ def download_model(model_tag, force):
 
 
 @models.command("clear")
-@click.argument("model_tag", type=click.Choice(["large", "medium", "all"]), required=False)
+@click.argument("model_tag", type=click.Choice(["large", "medium", "small", "all"]), required=False)
 @click.option("--confirm", "-y", is_flag=True, help="Skip confirmation prompt")
 def clear_models(model_tag, confirm):
     """Clear cached models."""

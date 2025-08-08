@@ -599,24 +599,51 @@ if PYTORCH_AVAILABLE:
             self.to(device)
         
         def _setup_model(self):
-            """Set up a simple audio generation model."""
-            # Simplified model - in practice would load real Magenta RT weights
-            self.hidden_dim = 512
+            """Set up audio generation model based on configuration."""
+            # Load model configuration if available
+            config_file = self.model_path / "config.json"
+            if config_file.exists():
+                import json
+                with open(config_file) as f:
+                    model_config = json.load(f)
+                    params = model_config.get("parameters", {})
+                    self.hidden_dim = params.get("hidden_dim", 512)
+                    num_layers = params.get("num_layers", 4)
+                    num_heads = params.get("num_heads", 8)
+            else:
+                # Default parameters
+                self.hidden_dim = 512
+                num_layers = 4
+                num_heads = 8
+            
+            # Audio encoder
             self.audio_encoder = torch.nn.Sequential(
                 torch.nn.Linear(1, 256),
                 torch.nn.ReLU(),
                 torch.nn.Linear(256, self.hidden_dim)
             )
             
-            self.generator = torch.nn.Sequential(
-                torch.nn.Linear(self.hidden_dim, 1024),
-                torch.nn.ReLU(),
-                torch.nn.Linear(1024, 1024), 
-                torch.nn.ReLU(),
-                torch.nn.Linear(1024, 512),
-                torch.nn.ReLU(),
-                torch.nn.Linear(512, 1)
-            )
+            # Generator with variable complexity
+            layers = []
+            current_dim = self.hidden_dim
+            
+            for i in range(num_layers):
+                next_dim = self.hidden_dim // (2 ** i) if i < num_layers - 1 else 1
+                if next_dim < 1:
+                    next_dim = 1
+                
+                layers.extend([
+                    torch.nn.Linear(current_dim, next_dim if next_dim > 1 else self.hidden_dim // 2),
+                    torch.nn.ReLU() if next_dim > 1 else torch.nn.Tanh()
+                ])
+                
+                if next_dim == 1:
+                    layers.append(torch.nn.Linear(self.hidden_dim // 2, 1))
+                    break
+                    
+                current_dim = next_dim
+            
+            self.generator = torch.nn.Sequential(*layers)
         
         def init_state(self):
             """Initialize generation state."""

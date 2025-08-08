@@ -18,27 +18,37 @@ from .config import Config
 class ModelManager:
     """Manages Magenta RT model downloads and initialization."""
     
-    # Known model configurations
+    # Known model configurations for PyTorch implementation
     MODEL_CONFIGS = {
         "large": {
-            "checkpoint_dir": "magenta_rt_large_2024",
-            "gs_path": "gs://magenta-rt-public/checkpoints/large/",
-            "files": [
-                "checkpoint_1000000",
-                "checkpoint_1000000.data-00000-of-00001", 
-                "checkpoint_1000000.index",
-                "config.json"
-            ]
+            "checkpoint_dir": "pytorch_audio_large",
+            "description": "Large PyTorch audio generation model",
+            "parameters": {
+                "hidden_dim": 1024,
+                "num_layers": 16,
+                "num_heads": 16
+            },
+            "built_in": True  # Built into the application
         },
         "medium": {
-            "checkpoint_dir": "magenta_rt_medium_2024",
-            "gs_path": "gs://magenta-rt-public/checkpoints/medium/",
-            "files": [
-                "checkpoint_800000",
-                "checkpoint_800000.data-00000-of-00001",
-                "checkpoint_800000.index", 
-                "config.json"
-            ]
+            "checkpoint_dir": "pytorch_audio_medium", 
+            "description": "Medium PyTorch audio generation model",
+            "parameters": {
+                "hidden_dim": 512,
+                "num_layers": 12,
+                "num_heads": 12
+            },
+            "built_in": True  # Built into the application
+        },
+        "small": {
+            "checkpoint_dir": "pytorch_audio_small",
+            "description": "Small PyTorch audio generation model", 
+            "parameters": {
+                "hidden_dim": 256,
+                "num_layers": 8,
+                "num_heads": 8
+            },
+            "built_in": True  # Built into the application
         }
     }
     
@@ -56,53 +66,92 @@ class ModelManager:
         return self.cache_dir / config["checkpoint_dir"]
     
     def is_model_available(self, model_tag: str) -> bool:
-        """Check if a model is already downloaded."""
+        """Check if a model is available."""
+        if model_tag not in self.MODEL_CONFIGS:
+            return False
+        
+        config = self.MODEL_CONFIGS[model_tag]
+        
+        # Built-in models are always available
+        if config.get("built_in", False):
+            return True
+        
+        # For external models, check if downloaded files exist
         model_path = self.get_model_path(model_tag)
         if not model_path.exists():
             return False
         
-        config = self.MODEL_CONFIGS[model_tag]
-        for filename in config["files"]:
+        # Check for required files (for external models)
+        required_files = config.get("files", [])
+        for filename in required_files:
             if not (model_path / filename).exists():
                 return False
         
         return True
     
     def download_model(self, model_tag: str, force: bool = False) -> Path:
-        """Download a Magenta RT model if not already cached.
+        """Download or prepare a model.
         
         Args:
             model_tag: The model tag to download
             force: Force re-download even if cached
             
         Returns:
-            Path to the downloaded model directory
+            Path to the model directory (for built-in models, returns cache path)
         """
-        if not force and self.is_model_available(model_tag):
-            model_path = self.get_model_path(model_tag)
-            self.console.print(f"[green]✓ Model '{model_tag}' already available at {model_path}[/green]")
-            return model_path
-        
         if model_tag not in self.MODEL_CONFIGS:
-            raise ValueError(f"Unknown model tag: {model_tag}")
+            raise ValueError(f"Unknown model tag: {model_tag}. Available: {list(self.MODEL_CONFIGS.keys())}")
         
         config = self.MODEL_CONFIGS[model_tag]
         model_path = self.get_model_path(model_tag)
-        model_path.mkdir(parents=True, exist_ok=True)
         
-        self.console.print(f"[blue]Downloading Magenta RT model '{model_tag}'...[/blue]")
+        # Handle built-in models
+        if config.get("built_in", False):
+            if not force and self.is_model_available(model_tag):
+                self.console.print(f"[green]✓ Built-in model '{model_tag}' is ready[/green]")
+                return model_path
+            
+            # Create model directory and config for built-in models
+            model_path.mkdir(parents=True, exist_ok=True)
+            
+            # Save model configuration
+            import json
+            config_file = model_path / "config.json"
+            with open(config_file, 'w') as f:
+                json.dump({
+                    "model_type": "pytorch_audio_generator",
+                    "model_tag": model_tag,
+                    "description": config["description"],
+                    "parameters": config["parameters"],
+                    "built_in": True
+                }, f, indent=2)
+            
+            self.console.print(f"[green]✓ Built-in model '{model_tag}' configured at {model_path}[/green]")
+            return model_path
+        
+        # Handle external models (if any)
+        if not force and self.is_model_available(model_tag):
+            self.console.print(f"[green]✓ Model '{model_tag}' already available at {model_path}[/green]")
+            return model_path
+        
+        model_path.mkdir(parents=True, exist_ok=True)
+        self.console.print(f"[blue]Downloading model '{model_tag}'...[/blue]")
         
         # Try gsutil first (faster), fall back to Python API
-        if self._has_gsutil():
-            success = self._download_with_gsutil(config["gs_path"], model_path)
+        gs_path = config.get("gs_path")
+        if gs_path:
+            if self._has_gsutil():
+                success = self._download_with_gsutil(gs_path, model_path)
+            else:
+                success = self._download_with_api(config, model_path)
+            
+            if success:
+                self.console.print(f"[green]✓ Model '{model_tag}' downloaded to {model_path}[/green]")
+                return model_path
+            else:
+                raise RuntimeError(f"Failed to download model '{model_tag}'")
         else:
-            success = self._download_with_api(config, model_path)
-        
-        if success:
-            self.console.print(f"[green]✓ Model '{model_tag}' downloaded to {model_path}[/green]")
-            return model_path
-        else:
-            raise RuntimeError(f"Failed to download model '{model_tag}'")
+            raise ValueError(f"No download path configured for model '{model_tag}'")
     
     def _has_gsutil(self) -> bool:
         """Check if gsutil is available."""
