@@ -30,18 +30,35 @@ Magenta RT JAM CLI brings **real-time AI audio generation** to your command line
 ## 🏃‍♂️ Quick Start
 
 ### Installation
+
+#### Option 1: Local Development
 ```bash
 # Install uv (modern Python package manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install Magenta RT JAM CLI with PyTorch
-uv pip install -e .
+# Clone and install dependencies
+git clone https://github.com/oxysoft/MagentaRT-jamcli
+cd MagentaRT-jamcli
+uv sync
+```
+
+#### Option 2: Global Installation with uvx
+```bash
+# Install and run directly from GitHub
+uvx --from git+https://github.com/oxysoft/MagentaRT-jamcli jamcli --help
+
+# Or install locally for repeated use
+uvx install --from . jamcli
+jamcli --help  # Now available globally
 ```
 
 ### Your First Jam Session
 ```bash
 # Start jamming! (models download automatically)
 uv run jamcli run --input-source mic --model-tag medium
+
+# Or if installed globally with uvx:
+jamcli run --input-source mic --model-tag medium
 ```
 
 That's it! The AI will start jamming along with whatever you play.
@@ -422,7 +439,7 @@ uv run jamcli run --input-source mic --model-tag large 2>&1 | tee session.log
 #### PyTorch Not Found
 ```bash
 # Reinstall with PyTorch dependencies
-❯ uv pip install -e . --force-reinstall
+❯ uv sync --reinstall
 ```
 
 #### GPU Not Detected
@@ -438,6 +455,12 @@ uv run jamcli run --input-source mic --model-tag large 2>&1 | tee session.log
 - Increase sample rate in config: `sample_rate = 48000`
 - Use GPU for better real-time performance: `--device gpu`
 
+#### soundfile Missing
+```bash
+# Install optional audio export dependency
+❯ uv add soundfile
+```
+
 ### Getting Help
 
 ```bash
@@ -445,6 +468,9 @@ uv run jamcli run --input-source mic --model-tag large 2>&1 | tee session.log
 ❯ uv run jamcli --help
 ❯ uv run jamcli run --help
 ❯ uv run jamcli models --help
+
+# Or install globally for direct access
+❯ uvx --from . jamcli --help
 ```
 
 ---
