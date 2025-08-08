@@ -43,8 +43,9 @@ def cli(ctx):
 @click.option("--device", type=click.Choice(["cpu", "gpu", "mps"]), default="cpu", 
               help="Device to run the model on (gpu=CUDA, mps=Apple Silicon)")
 @click.option("--model-tag", default="large", help="Model tag to use")
+@click.option("--tui", is_flag=True, help="Use Terminal User Interface with live volume meters")
 @click.pass_context
-def run(ctx, config, input_source, audio_file, bpm, beats_per_loop, intro_loops, device, model_tag):
+def run(ctx, config, input_source, audio_file, bpm, beats_per_loop, intro_loops, device, model_tag, tui):
     """Run the audio injection session."""
     
     # Load configuration
@@ -80,7 +81,12 @@ def run(ctx, config, input_source, audio_file, bpm, beats_per_loop, intro_loops,
     
     try:
         # Initialize and run the audio injection app
-        app = AudioInjectionApp(cfg, console)
+        app = AudioInjectionApp(cfg, console, use_tui=tui)
+        
+        if tui:
+            console.print("[bold cyan]🎛️  Starting TUI Mode[/bold cyan]")
+            console.print("[dim]Use SPACE to start/stop, Q to quit[/dim]\n")
+        
         app.run()
     except KeyboardInterrupt:
         console.print("\n[yellow]Session interrupted by user[/yellow]")

@@ -2,6 +2,7 @@
 
 import os
 import sys
+import time
 import dataclasses
 import functools
 import concurrent.futures
@@ -22,6 +23,7 @@ from rich.prompt import Confirm
 from .config import Config
 from .model_manager import ModelManager
 from .audio_stream import AudioStreamer
+from .tui import MagentaTUI
 
 # Import PyTorch and audio processing components
 try:
@@ -155,9 +157,10 @@ class AudioInjectionState:
 class AudioInjectionApp:
     """Main application class for audio injection."""
     
-    def __init__(self, config: Config, console: Console):
+    def __init__(self, config: Config, console: Console, use_tui: bool = False):
         self.config = config
         self.console = console
+        self.use_tui = use_tui
         self.system = None
         self.streamer = None
         self.input_audio = None
@@ -169,6 +172,9 @@ class AudioInjectionApp:
         # Audio injection state
         self.injection_state = None
         self.fade = None
+        
+        # TUI interface
+        self.tui = MagentaTUI(config, console) if use_tui else None
         
     def run(self):
         """Run the main application."""
@@ -350,6 +356,9 @@ class AudioInjectionApp:
             inputs_mono = input_chunk if input_chunk is not None else np.zeros(chunk_samples)
             inputs = np.column_stack([inputs_mono, inputs_mono])  # Convert to stereo
         
+        # Calculate input RMS for volume monitoring
+        input_rms = np.sqrt(np.mean(inputs_mono ** 2)) if len(inputs_mono) > 0 else 0.0
+        
         # Add input to injection state
         self.injection_state.all_inputs = np.concatenate(
             [self.injection_state.all_inputs, inputs], axis=0
@@ -464,6 +473,20 @@ class AudioInjectionApp:
         if self.config.use_prerecorded_input:
             chunk_faded += inputs * self.config.model.input_volume
         
+        # Calculate output RMS for volume monitoring
+        output_rms = np.sqrt(np.mean(chunk_faded ** 2)) if len(chunk_faded) > 0 else 0.0
+        mixed_rms = output_rms  # For now, mixed is same as output
+        
+        # Update TUI with volume levels
+        if self.tui:
+            self.tui.update_volume_levels(input_rms, output_rms, mixed_rms)
+            self.tui.update_stats(
+                chunks_processed=self.injection_state.step + 1,
+                generation_rate=1.0 / self.config.audio.chunk_seconds,
+                processing_efficiency=95.0,  # Placeholder
+                latency_ms=self.config.audio.chunk_seconds * 1000 * 0.1,  # Estimate
+            )
+        
         # Update step counter
         self.injection_state.step += 1
         
@@ -471,6 +494,51 @@ class AudioInjectionApp:
     
     def _run_session(self):
         """Run the main audio generation session."""
+        if self.use_tui:
+            self._run_tui_session()
+        else:
+            self._run_console_session()
+    
+    def _run_tui_session(self):
+        """Run the session with TUI interface."""
+        import threading
+        import time
+        
+        # Update TUI status
+        self.tui.set_status(
+            model_status="✓ Ready",
+            device_status="✓ Connected"
+        )
+        
+        # Setup audio streaming in background
+        def audio_worker():
+            try:
+                with self.audio_streamer:
+                    self.audio_streamer.start_streaming()
+                    
+                    # Wait for TUI to signal recording
+                    while not self.tui.state.is_recording and self.tui.state.is_running:
+                        time.sleep(0.1)
+                    
+                    # Keep running while TUI is active
+                    while self.tui.state.is_running:
+                        time.sleep(0.1)
+                        
+            except Exception as e:
+                self.console.print(f"[red]Audio error: {e}[/red]")
+        
+        # Start audio worker thread
+        audio_thread = threading.Thread(target=audio_worker, daemon=True)
+        audio_thread.start()
+        
+        try:
+            # Run TUI (blocks until quit)
+            self.tui.run()
+        finally:
+            self._save_session_output()
+    
+    def _run_console_session(self):
+        """Run the session with traditional console interface."""
         self.console.print(Panel.fit(
             "[bold green]Starting Audio Injection Session[/bold green]\n"
             f"[dim]Model will join after {self.config.intro_loops * self.config.loop_seconds:.2f} seconds[/dim]",
