@@ -44,11 +44,11 @@ uv sync
 
 #### Option 2: Global Installation with uvx
 ```bash
-# Simply run directly from GitHub
+# Run directly from GitHub
 uvx --from git+https://github.com/oxysoft/MagentaRT-jamcli jamcli --help
 
 # Or install locally for repeated use
-uvx install --from . jamcli
+uv tool install git+https://github.com/oxysoft/MagentaRT-jamcli
 jamcli --help  # Now available globally
 ```
 
