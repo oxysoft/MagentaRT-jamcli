@@ -1,0 +1,35 @@
+# Example configuration file for Magenta RT JAM CLI
+
+# Basic settings
+input_source = "file"  # "file" or "mic"
+audio_file = "path/to/your/audio.wav"  # Required for file input
+bpm = 120
+beats_per_loop = 8
+intro_loops = 4
+device = "cpu"  # "cpu", "gpu", or "tpu"
+model_tag = "large"
+
+# Advanced settings
+mix_prefix_frames = 16
+left_edge_frames_to_remove = 8
+
+[audio]
+sample_rate = 48000
+chunk_seconds = 2.0
+
+[model]
+temperature = 1.2
+topk = 30
+guidance_weight = 1.5
+model_volume = 0.6
+input_volume = 1.0
+model_feedback = 0.95
+input_gap = 400  # milliseconds
+
+[prompts]
+text_prompts = [
+    "lofi hip hop beat",
+    "funk jam", 
+    "acid house"
+]
+prompt_weights = [1.0, 0.0, 0.0]  # Weight for each prompt
