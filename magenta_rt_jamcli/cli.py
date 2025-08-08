@@ -3,6 +3,7 @@
 
 import os
 import sys
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -16,6 +17,7 @@ from rich.text import Text
 
 from .audio_injection import AudioInjectionApp
 from .config import Config, load_config, save_config
+from .model_manager import ModelManager
 
 console = Console()
 
@@ -146,6 +148,133 @@ def show_config(config_file):
     """Show configuration file contents."""
     cfg = load_config(config_file)
     display_config(cfg)
+
+
+@cli.group()
+def models():
+    """Model management commands."""
+    pass
+
+
+@models.command("list")
+def list_models():
+    """List available models and their download status."""
+    model_manager = ModelManager(console)
+    status = model_manager.list_available_models()
+    
+    table = Table(title="Available Magenta RT Models", show_header=True, header_style="bold magenta")
+    table.add_column("Model", style="bold")
+    table.add_column("Status", justify="center")
+    table.add_column("Location")
+    
+    for model_tag, is_downloaded in status.items():
+        if is_downloaded:
+            status_text = "[green]✓ Downloaded[/green]"
+            location = str(model_manager.get_model_path(model_tag))
+        else:
+            status_text = "[red]✗ Not Downloaded[/red]"
+            location = "[dim]Not available[/dim]"
+        
+        table.add_row(model_tag, status_text, location)
+    
+    console.print(table)
+
+
+@models.command("download")
+@click.argument("model_tag", type=click.Choice(["large", "medium"]))
+@click.option("--force", "-f", is_flag=True, help="Force re-download even if cached")
+def download_model(model_tag, force):
+    """Download a Magenta RT model."""
+    model_manager = ModelManager(console)
+    
+    try:
+        model_path = model_manager.download_model(model_tag, force=force)
+        console.print(f"[green]✓ Model '{model_tag}' ready at {model_path}[/green]")
+    except Exception as e:
+        console.print(f"[red]Failed to download model '{model_tag}': {e}[/red]")
+        sys.exit(1)
+
+
+@models.command("clear")
+@click.argument("model_tag", type=click.Choice(["large", "medium", "all"]), required=False)
+@click.option("--confirm", "-y", is_flag=True, help="Skip confirmation prompt")
+def clear_models(model_tag, confirm):
+    """Clear cached models."""
+    model_manager = ModelManager(console)
+    
+    if model_tag == "all":
+        if not confirm and not Confirm.ask("Clear all cached models?"):
+            console.print("[yellow]Cancelled by user[/yellow]")
+            return
+        model_manager.clear_cache()
+    elif model_tag:
+        if not confirm and not Confirm.ask(f"Clear cached model '{model_tag}'?"):
+            console.print("[yellow]Cancelled by user[/yellow]")
+            return
+        model_manager.clear_cache(model_tag)
+    else:
+        console.print("[red]Please specify a model tag or 'all'[/red]")
+        sys.exit(1)
+
+
+@cli.command()
+def devices():
+    """List available audio devices."""
+    try:
+        import sounddevice as sd
+        from .audio_stream import AudioStreamer
+        from .config import Config
+        
+        # Create a temporary config for device listing
+        config = Config()
+        streamer = AudioStreamer(config, console, lambda x: x)
+        
+        device_table = streamer.list_audio_devices()
+        console.print(device_table)
+        
+    except ImportError:
+        console.print("[red]sounddevice not available. Install with: pip install sounddevice[/red]")
+    except Exception as e:
+        console.print(f"[red]Error listing audio devices: {e}[/red]")
+
+
+@cli.command()
+@click.option("--output-dir", "-o", type=click.Path(), default="jamcli_output",
+              help="Output directory to check")
+def sessions(output_dir):
+    """List saved audio sessions."""
+    output_dir = Path(output_dir)
+    
+    if not output_dir.exists():
+        console.print(f"[yellow]Output directory {output_dir} does not exist[/yellow]")
+        return
+    
+    # Find audio files
+    audio_files = []
+    for pattern in ["*.wav", "*.mp3", "*.flac"]:
+        audio_files.extend(output_dir.glob(pattern))
+    
+    if not audio_files:
+        console.print(f"[yellow]No audio sessions found in {output_dir}[/yellow]")
+        return
+    
+    table = Table(title="Saved Audio Sessions", show_header=True, header_style="bold green")
+    table.add_column("Filename", style="bold")
+    table.add_column("Size", justify="right")
+    table.add_column("Modified", justify="right")
+    
+    for file_path in sorted(audio_files, key=lambda f: f.stat().st_mtime, reverse=True):
+        stat = file_path.stat()
+        size_mb = stat.st_size / (1024 * 1024)
+        modified = time.strftime("%Y-%m-%d %H:%M", time.localtime(stat.st_mtime))
+        
+        table.add_row(
+            file_path.name,
+            f"{size_mb:.1f} MB",
+            modified
+        )
+    
+    console.print(table)
 
 
 def display_config(cfg: Config) -> None:
