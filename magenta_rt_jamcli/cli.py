@@ -18,6 +18,7 @@ from rich.text import Text
 from .audio_injection import AudioInjectionApp
 from .config import Config, load_config, save_config
 from .model_manager import ModelManager
+from .tui_config import ConfigurationFlow
 
 console = Console()
 
@@ -31,75 +32,102 @@ def cli(ctx):
 
 
 @cli.command()
-@click.option("--config", "-c", type=click.Path(exists=True), help="Configuration file path")
-@click.option("--input-source", type=click.Choice(["mic", "file"]), default="file", 
-              help="Input source: microphone or audio file")
+@click.option("--config", "-c", type=click.Path(exists=True), 
+              help="Configuration file path")
+@click.option("--no-tui", is_flag=True, help="Disable full-screen TUI, use legacy console mode")
+@click.option("--input-source", type=click.Choice(["mic", "file"]), 
+              help="Input source (console mode only)")
 @click.option("--audio-file", "-f", type=click.Path(exists=True), 
-              help="Audio file path (for file input)")
-@click.option("--bpm", type=int, default=120, help="Beats per minute for metronome")
-@click.option("--beats-per-loop", type=int, default=8, help="Number of beats per loop")
-@click.option("--intro-loops", type=int, default=4, 
-              help="Number of intro loops before model joins")
-@click.option("--device", type=click.Choice(["cpu", "gpu", "mps"]), default="cpu", 
-              help="Device to run the model on (gpu=CUDA, mps=Apple Silicon)")
-@click.option("--model-tag", default="large", help="Model tag to use")
-@click.option("--no-tui", is_flag=True, help="Disable Terminal User Interface, use console mode")
+              help="Audio file path (console mode only)")
+@click.option("--bpm", type=int, help="Beats per minute (console mode only)")
+@click.option("--beats-per-loop", type=int, help="Number of beats per loop (console mode only)")
+@click.option("--intro-loops", type=int, help="Number of intro loops (console mode only)")
+@click.option("--device", type=click.Choice(["cpu", "gpu", "mps"]), 
+              help="Device to run on (console mode only)")
+@click.option("--model-tag", help="Model tag to use (console mode only)")
 @click.pass_context
-def run(ctx, config, input_source, audio_file, bpm, beats_per_loop, intro_loops, device, model_tag, no_tui):
-    """Run the audio injection session."""
+def run(ctx, config, no_tui, input_source, audio_file, bpm, beats_per_loop, intro_loops, device, model_tag):
+    """Run the audio injection session with full-screen TUI configuration."""
     
-    # Load configuration
+    # Load base configuration
     if config:
         cfg = load_config(config)
     else:
         cfg = Config()
     
-    # Override config with CLI arguments
-    cfg.input_source = input_source
-    if audio_file:
-        cfg.audio_file = Path(audio_file)
-    cfg.bpm = bpm
-    cfg.beats_per_loop = beats_per_loop
-    cfg.intro_loops = intro_loops
-    cfg.device = device
-    cfg.model_tag = model_tag
-    
-    # Display welcome message
-    console.print(Panel.fit(
-        "[bold blue]Magenta RT JAM CLI[/bold blue]\n"
-        "[dim]Audio Injection with Magenta RealTime[/dim]",
-        border_style="blue"
-    ))
-    
-    # Display configuration
-    display_config(cfg)
-    
-    # TUI is now the default, unless explicitly disabled
+    # Full-screen TUI is the default - only use console mode if explicitly requested
     use_tui = not no_tui
     
-    # Show mode information before confirmation
     if use_tui:
-        console.print("\n[bold cyan]🎛️  TUI Mode (default)[/bold cyan] - Interactive interface with live volume meters")
-        console.print("[dim]Use --no-tui for console mode[/dim]")
+        # Full-screen TUI configuration flow
+        console.print(Panel.fit(
+            "[bold cyan]🎛️ Magenta RT JAM CLI - Interactive Setup[/bold cyan]\n"
+            "[dim]Full-screen configuration with live audio preview[/dim]",
+            border_style="cyan"
+        ))
+        console.print("\n[bold blue]Starting TUI Configuration Flow...[/bold blue]")
+        console.print("[dim]Use arrow keys to navigate, ENTER to select, Q to quit[/dim]\n")
+        
+        # Brief pause to let user read the message
+        time.sleep(2)
+        
+        try:
+            # Run the TUI configuration flow
+            config_flow = ConfigurationFlow(cfg, console)
+            final_config = config_flow.run()
+            
+            if final_config is None:
+                console.print("\n[yellow]Configuration cancelled by user[/yellow]")
+                return
+            
+            # Start the audio session with TUI
+            app = AudioInjectionApp(final_config, console, use_tui=True)
+            app.run()
+            
+        except KeyboardInterrupt:
+            console.print("\n[yellow]Configuration interrupted by user[/yellow]")
+        except Exception as e:
+            console.print(f"\n[red]Error: {e}[/red]")
+            sys.exit(1)
+    
     else:
+        # Legacy console mode with CLI arguments
+        console.print(Panel.fit(
+            "[bold blue]📟 Magenta RT JAM CLI - Console Mode[/bold blue]\n"
+            "[dim]Legacy command-line interface[/dim]",
+            border_style="blue"
+        ))
+        
+        # Apply CLI arguments to config (with defaults)
+        cfg.input_source = input_source or "file"
+        if audio_file:
+            cfg.audio_file = Path(audio_file)
+        cfg.bpm = bpm or 120
+        cfg.beats_per_loop = beats_per_loop or 8
+        cfg.intro_loops = intro_loops or 4
+        cfg.device = device or "cpu"
+        cfg.model_tag = model_tag or "large"
+        
+        # Display configuration
+        display_config(cfg)
+        
         console.print("\n[bold blue]📟 Console Mode[/bold blue] - Traditional command line interface") 
         console.print("[dim]Remove --no-tui for interactive TUI mode (recommended)[/dim]")
-    
-    # Confirm settings
-    if not Confirm.ask("Continue with these settings?"):
-        console.print("[yellow]Cancelled by user[/yellow]")
-        return
-    
-    try:
-        # Initialize and run the audio injection app
-        app = AudioInjectionApp(cfg, console, use_tui=use_tui)
         
-        app.run()
-    except KeyboardInterrupt:
-        console.print("\n[yellow]Session interrupted by user[/yellow]")
-    except Exception as e:
-        console.print(f"\n[red]Error: {e}[/red]")
-        sys.exit(1)
+        # Confirm settings
+        if not Confirm.ask("Continue with these settings?"):
+            console.print("[yellow]Cancelled by user[/yellow]")
+            return
+        
+        try:
+            # Initialize and run the audio injection app in console mode
+            app = AudioInjectionApp(cfg, console, use_tui=False)
+            app.run()
+        except KeyboardInterrupt:
+            console.print("\n[yellow]Session interrupted by user[/yellow]")
+        except Exception as e:
+            console.print(f"\n[red]Error: {e}[/red]")
+            sys.exit(1)
 
 
 @cli.command()

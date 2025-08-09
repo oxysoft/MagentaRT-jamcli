@@ -48,6 +48,7 @@ class Config:
     # Basic settings
     input_source: str = "file"  # "mic" or "file"
     audio_file: Optional[Path] = None
+    audio_device_id: Optional[int] = None  # Audio input device ID
     bpm: int = 120
     beats_per_loop: int = 8
     intro_loops: int = 4
