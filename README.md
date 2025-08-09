@@ -32,18 +32,6 @@ Magenta RT JAM CLI brings **real-time AI audio generation** to your command line
 
 ### Installation
 
-#### Option 1: Local Development
-```bash
-# Install uv (modern Python package manager)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Clone and install dependencies
-git clone https://github.com/oxysoft/MagentaRT-jamcli
-cd MagentaRT-jamcli
-uv sync
-```
-
-#### Option 2: Global Installation with uvx
 ```bash
 # Run directly from GitHub
 uvx --from git+https://github.com/oxysoft/MagentaRT-jamcli jamcli --help
